@@ -1,10 +1,11 @@
 package com.newcoder.community.controller;
 
 import com.newcoder.community.annotation.LoginRequired;
+import com.newcoder.community.entity.Comment;
+import com.newcoder.community.entity.DiscussPost;
+import com.newcoder.community.entity.Page;
 import com.newcoder.community.entity.User;
-import com.newcoder.community.service.FollowService;
-import com.newcoder.community.service.LikeService;
-import com.newcoder.community.service.UserService;
+import com.newcoder.community.service.*;
 import com.newcoder.community.util.CommunityConstant;
 import com.newcoder.community.util.CommunityUtil;
 import com.newcoder.community.util.HostHolder;
@@ -17,10 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
@@ -28,6 +26,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/user")
@@ -51,7 +53,13 @@ public class UserController implements CommunityConstant {
     private HostHolder hostHolder;
 
     @Autowired
+    private DiscussPostService discussPostService;
+
+    @Autowired
     private LikeService likeService;
+
+    @Autowired
+    private CommentService commentService;
 
     @Autowired
     private FollowService followService;
@@ -188,6 +196,73 @@ public class UserController implements CommunityConstant {
         model.addAttribute("hasFollowed", hasFollowed);
 
         return "/site/profile";
+    }
+
+    // 我的帖子
+    @RequestMapping(path = "/my-post/{userId}", method = RequestMethod.GET)
+    public String getMyPostPage(@PathVariable("userId") int userId, Model model, Page page,
+                                @RequestParam(name = "orderMode", defaultValue = "0") int orderMode) {
+
+        User user = userService.findUserById(userId);
+        if (user == null) {
+            throw new RuntimeException("该用户不存在!");
+        }
+        page.setRows(discussPostService.findDiscussPostRows(userId));
+        page.setPath("/user/my-post/" + userId);
+
+        List<DiscussPost> list = discussPostService
+                .findDiscussPosts(userId, page.getOffset(), page.getLimit(), orderMode);
+        List<Map<String, Object>> discussPosts = new ArrayList<>();
+        if (list != null) {
+            for (DiscussPost post : list) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("post", post);
+                map.put("user", user);
+
+                long likeCount = likeService.findEntityLikeCount(ENTITY_TYPE_POST, post.getId());
+                map.put("likeCount", likeCount);
+
+                discussPosts.add(map);
+            }
+        }
+        model.addAttribute("discussPosts", discussPosts);
+        model.addAttribute("orderMode", orderMode);
+        model.addAttribute("user", user);
+        model.addAttribute("page", page);
+
+        return "/site/my-post";
+    }
+
+    // 我的帖子
+    @RequestMapping(path = "/my-reply/{userId}", method = RequestMethod.GET)
+    public String getMyReplyPage(@PathVariable("userId") int userId, Model model, Page page,
+                                 @RequestParam(name = "orderMode", defaultValue = "0") int orderMode) {
+
+        User user = userService.findUserById(userId);
+        if (user == null) {
+            throw new RuntimeException("该用户不存在!");
+        }
+        page.setRows(commentService.findCommentRowsById(userId));
+        page.setPath("/user/my-reply/" + userId);
+
+        List<Comment> list = commentService
+                .findCommentsByUserid(userId, page.getOffset(), page.getLimit());
+        List<Map<String, Object>> comments = new ArrayList<>();
+        if (list != null) {
+            for (Comment comment : list) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("comment", comment);
+                map.put("user", user);
+
+
+                comments.add(map);
+            }
+        }
+        model.addAttribute("comments", comments);
+        model.addAttribute("user", user);
+        model.addAttribute("page", page);
+
+        return "/site/my-reply";
     }
 
 }

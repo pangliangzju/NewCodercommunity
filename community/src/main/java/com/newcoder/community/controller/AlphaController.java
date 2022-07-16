@@ -52,26 +52,32 @@ public class AlphaController {
             e.printStackTrace();
         }
     }
-    @RequestMapping(path="/students",method = RequestMethod.GET)
+
+    @RequestMapping(path = "/students", method = RequestMethod.GET)
     @ResponseBody
     public String getStudents(
-            @RequestParam(name="current",required = false,defaultValue ="1") int current,
-            @RequestParam(name="limit",required = false,defaultValue ="10") int limit){
+            @RequestParam(name = "current", required = false, defaultValue = "1") int current,
+            @RequestParam(name = "limit", required = false, defaultValue = "10") int limit) {
         System.out.println(current);
         System.out.println(limit);
         return "some students";
     }
 
-    @RequestMapping(path = "/student/{id}",method = RequestMethod.GET)
+    /**
+     * /student/123
+     * 上面是路径实例，request参数直接写到路径里怎么获取？123会绑定到id里面
+     * RequestMapping里写了id，再加上@PathVariable("id") int id，这个注解，共同作用
+     */
+    @RequestMapping(path = "/student/{id}", method = RequestMethod.GET)
     @ResponseBody
     public String getStudent(@PathVariable("id") int id) {
         System.out.println(id);
         return "a student";
     }
 
-    @RequestMapping(path = "/student",method = RequestMethod.POST)
+    @RequestMapping(path = "/student", method = RequestMethod.POST)
     @ResponseBody
-    public String saveStudent(String name,int age){
+    public String saveStudent(String name, int age) {
         System.out.println(name);
         System.out.println(age);
         return "success";

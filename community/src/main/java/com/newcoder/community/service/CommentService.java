@@ -2,6 +2,7 @@ package com.newcoder.community.service;
 
 import com.newcoder.community.dao.CommentMapper;
 import com.newcoder.community.entity.Comment;
+import com.newcoder.community.entity.DiscussPost;
 import com.newcoder.community.util.CommunityConstant;
 import com.newcoder.community.util.SensitiveFilter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +56,14 @@ public class CommentService implements CommunityConstant {
 
     public Comment findCommentById(int id) {
         return commentMapper.selectCommentById(id);
+    }
+
+    public List<Comment> findCommentsByUserid(int id, int offset, int limit) {
+        return commentMapper.selectCommentsByUserid(id, offset, limit);
+    }
+
+    public int findCommentRowsById(int userId) {
+        return commentMapper.selectCommentRowsById(userId);
     }
 
 }
