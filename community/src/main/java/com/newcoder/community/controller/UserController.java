@@ -108,6 +108,30 @@ public class UserController implements CommunityConstant {
         return CommunityUtil.getJSONString(0);
     }
 
+    @LoginRequired
+    @RequestMapping(path = "/update-password", method = RequestMethod.POST)
+    public String updatePassword(String password, String formalPassword, Model model, String secondPassword) {
+        if (password == null) {
+            model.addAttribute("error2", "您还没有填写新密码!");
+            return "/site/setting";
+        }
+        if (formalPassword == null) {
+            model.addAttribute("error1", "您还没有填写原密码!");
+            return "/site/setting";
+        }
+        if (!password.equals(secondPassword)) {
+            model.addAttribute("error3", "两次填写的密码不一致!");
+            return "/site/setting";
+        }
+
+        User user = hostHolder.getUser();
+        if (userService.updatePassword(user, password, formalPassword) == 0) {
+            return "/site/setting";
+        }
+
+        return "redirect:/index";
+    }
+
     // 废弃
     @LoginRequired
     @RequestMapping(path = "/upload", method = RequestMethod.POST)
@@ -251,8 +275,10 @@ public class UserController implements CommunityConstant {
         if (list != null) {
             for (Comment comment : list) {
                 Map<String, Object> map = new HashMap<>();
+                String entityTitle = discussPostService.findDiscussPostById(comment.getEntityId()).getTitle();
                 map.put("comment", comment);
                 map.put("user", user);
+                map.put("entityTitle", entityTitle);
 
 
                 comments.add(map);

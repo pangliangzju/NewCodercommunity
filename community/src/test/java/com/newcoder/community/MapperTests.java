@@ -70,8 +70,8 @@ public class MapperTests {
         rows = userMapper.updateHeader(150, "http://www.nowcoder.com/102.png");
         System.out.println(rows);
 
-        rows = userMapper.updatePassword(150, "hello");
-        System.out.println(rows);
+//        rows = userMapper.updatePassword(150, "hello");
+//        System.out.println(rows);
     }
 
     @Test
